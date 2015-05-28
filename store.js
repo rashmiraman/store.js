@@ -1,24 +1,5 @@
-"use strict"
-// Module export pattern from
-// https://github.com/umdjs/umd/blob/master/returnExports.js
-;(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], factory);
-    } else if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory();
-    } else {
-        // Browser globals (root is window)
-        root.store = factory();
-  }
-}(this, function () {
-	
-	// Store.js
+;(function(win){
 	var store = {},
-		win = window,
 		doc = win.document,
 		localStorageName = 'localStorage',
 		scriptTag = 'script',
@@ -89,7 +70,7 @@
 				callback(key, store.get(key))
 			}
 		}
-	} else if (doc.documentElement.addBehavior) {
+	} else if (doc && doc.documentElement.addBehavior) {
 		var storageOwner,
 			storageContainer
 		// Since #userData storage applies only to specific paths, we need to
@@ -134,7 +115,7 @@
 		// See https://github.com/marcuswestin/store.js/issues/40
 		// See https://github.com/marcuswestin/store.js/issues/83
 		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
-		var ieKeyFix = function(key) {
+		function ieKeyFix(key) {
 			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
 		}
 		store.set = withIEStorage(function(storage, key, val) {
@@ -157,8 +138,8 @@
 		store.clear = withIEStorage(function(storage) {
 			var attributes = storage.XMLDocument.documentElement.attributes
 			storage.load(localStorageName)
-			while (attributes.length) {
-				storage.removeAttribute(attributes[0].name)
+			for (var i=0, attr; attr=attributes[i]; i++) {
+				storage.removeAttribute(attr.name)
 			}
 			storage.save(localStorageName)
 		})
@@ -186,6 +167,9 @@
 		store.disabled = true
 	}
 	store.enabled = !store.disabled
-	
-	return store
-}));
+
+	if (typeof module != 'undefined' && module.exports && this.module !== module) { module.exports = store }
+	else if (typeof define === 'function' && define.amd) { define(store) }
+	else { win.store = store }
+
+})(Function('return this')());
